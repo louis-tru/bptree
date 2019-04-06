@@ -25,14 +25,14 @@ TEST_START("basic benchmark", "basic-bench")
 
     BENCH_START(write, delta)
     for (i = start; i < start + delta; i++) {
-      bp_sets(&db, keys[i], value);
+      bp_set_s(&db, keys[i], value);
     }
     BENCH_END(write, delta)
 
     BENCH_START(read, start + delta)
     for (i = 0; i < start + delta; i++) {
       char* value1;
-      bp_gets(&db, keys[i], &value1);
+      bp_get_s(&db, keys[i], &value1);
       free(value1);
     }
     BENCH_END(read, start + delta)
@@ -45,7 +45,7 @@ TEST_START("basic benchmark", "basic-bench")
   BENCH_START(read_after_compact, num)
   for (i = 0; i < num; i++) {
     char* value;
-    bp_gets(&db, keys[i], &value);
+    bp_get_s(&db, keys[i], &value);
     free(value);
   }
   BENCH_END(read_after_compact, num)
@@ -53,14 +53,14 @@ TEST_START("basic benchmark", "basic-bench")
   BENCH_START(read_after_compact_with_os_cache, num)
   for (i = 0; i < num; i++) {
     char* value;
-    bp_gets(&db, keys[i], &value);
+    bp_get_s(&db, keys[i], &value);
     free(value);
   }
   BENCH_END(read_after_compact_with_os_cache, num)
 
   BENCH_START(remove, num)
   for (i = 0; i < num; i++) {
-    bp_removes(&db, keys[i]);
+    bp_remove_s(&db, keys[i]);
   }
   BENCH_END(remove, num)
 

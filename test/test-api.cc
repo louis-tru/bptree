@@ -23,7 +23,7 @@ TEST_START("API test", "api")
   for (i = 0; i < n; i++) {
     sprintf(key, "some key %d", i);
     sprintf(val, "some long long long long long value %d", i);
-    assert(bp_sets(&db, key, val) == BP_OK);
+    assert(bp_set_s(&db, key, val) == BP_OK);
   }
 
   assert(bp_compact(&db) == BP_OK);
@@ -32,7 +32,7 @@ TEST_START("API test", "api")
     sprintf(key, "some key %d", i);
     sprintf(val, "some updated long long long long long value %d", i);
     sprintf(expected, "some long long long long long value %d", i);
-    assert(bp_updates(&db, key, val, update_cb, (void*) expected) == BP_OK);
+    assert(bp_update_s(&db, key, val, update_cb, (void*) expected) == BP_OK);
   }
 
   assert(bp_compact(&db) == BP_OK);
@@ -43,7 +43,7 @@ TEST_START("API test", "api")
     sprintf(key, "some key %d", i);
     sprintf(expected, "some updated long long long long long value %d", i);
 
-    assert(bp_gets(&db, key, &result) == BP_OK);
+    assert(bp_get_s(&db, key, &result) == BP_OK);
     assert(strcmp(result, expected) == 0);
 
     free(result);
@@ -53,7 +53,7 @@ TEST_START("API test", "api")
   for (i = 0; i < n; i++) {
     sprintf(key, "some key %d", i);
     sprintf(val, "some another value %d", i);
-    assert(bp_sets(&db, key, val) == BP_OK);
+    assert(bp_set_s(&db, key, val) == BP_OK);
   }
 
   for (i = 0; i < n; i++) {
@@ -110,7 +110,7 @@ TEST_START("API test", "api")
   for (i = 0; i < n; i++) {
     sprintf(key, "some key %d", i);
     sprintf(expected, "some another value %d", i);
-    assert(bp_removevs(&db, key, remove_cb, (void*) expected) == BP_OK);
+    assert(bp_removev_s(&db, key, remove_cb, (void*) expected) == BP_OK);
   }
 
   assert(bp_compact(&db) == BP_OK);

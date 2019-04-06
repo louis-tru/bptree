@@ -1,4 +1,7 @@
 *.o
 *.d
 *.a
+*.so
 *.dSYM/
+.DS_Store
+*.DS_Store

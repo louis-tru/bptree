@@ -15,7 +15,7 @@ TEST_START("bulk set test", "bulk-set")
   sprintf(key, "key: x");
   for (i = 0; i < n; i++) {
     key[5] = i << 1;
-    assert(bp_sets(&db, key, key) == BP_OK);
+    assert(bp_set_s(&db, key, key) == BP_OK);
   }
 
   for (i = 0; i < n; i++) {
@@ -26,11 +26,11 @@ TEST_START("bulk set test", "bulk-set")
     keys[i][5] = (i << 1) + 1;
   }
 
-  assert(bp_bulk_sets(&db, n, (const char**) keys, (const char**) keys) ==
+  assert(bp_bulk_set_s(&db, n, (const char**) keys, (const char**) keys) ==
          BP_OK);
 
   /* just for sanity_check */
-  assert(bp_bulk_updates(&db,
+  assert(bp_bulk_update_s(&db,
                          n,
                          (const char**) keys,
                          (const char**) keys,
@@ -45,12 +45,12 @@ TEST_START("bulk set test", "bulk-set")
     char* value;
 
     key[5] = i << 1;
-    assert(bp_gets(&db, key, &value) == BP_OK);
+    assert(bp_get_s(&db, key, &value) == BP_OK);
     assert(strcmp(key, value) == 0);
     free(value);
 
     key[5] = (i << 1) + 1;
-    assert(bp_gets(&db, key, &value) == BP_OK);
+    assert(bp_get_s(&db, key, &value) == BP_OK);
     assert(strcmp(key, value) == 0);
     free(value);
   }

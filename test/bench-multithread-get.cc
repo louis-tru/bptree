@@ -9,7 +9,7 @@ void* reader_thread(void* db_) {
 
   for (int i = 0; i < num; i++) {
     char* value;
-    bp_gets(db, keys[i], &value);
+    bp_get_s(db, keys[i], &value);
     free(value);
   }
 
@@ -25,7 +25,7 @@ TEST_START("multi-threaded get benchmark", "mt-get-bench")
     sprintf(keys[i], "%0*d", 20, i);
   }
 
-  bp_bulk_sets(&db,
+  bp_bulk_set_s(&db,
                num,
                (const char**) keys,
                (const char**) keys);

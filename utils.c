@@ -1,4 +1,4 @@
-#include "private/utils.h"
+#include "utils.h"
 
 #include <stdint.h> /* uint64_t */
 #include <arpa/inet.h> /* nothl, htonl */
@@ -26,6 +26,7 @@ uint64_t bp__compute_hashl(uint64_t key)
                        bp__compute_hash(keyl);
 }
 
+#ifndef __APPLE__
 uint64_t htonll(uint64_t value)
 {
     static const int num = 23;
@@ -49,3 +50,4 @@ uint64_t ntohll(uint64_t value)
 
     return ((uint64_t) low_part << 32) | high_part;
 }
+#endif

@@ -12,7 +12,7 @@ void* test_reader(void* db_) {
   for (int j = 0; j < times; j++) {
     for (int i = 0; i < items; i++) {
       sprintf(key, "%d", i);
-      if (bp_gets(db, key, &value) == BP_OK) {
+      if (bp_get_s(db, key, &value) == BP_OK) {
         assert(strcmp(key, value) == 0);
         free(value);
       }
@@ -31,7 +31,7 @@ void* test_writer(void* db_) {
   for (int j = 0; j < times; j++) {
     for (int i = 0; i < items; i++) {
       sprintf(key, "%d", i);
-      ret = bp_sets(db, key, key);
+      ret = bp_set_s(db, key, key);
       assert(ret == BP_OK);
       usleep(30);
     }
@@ -48,7 +48,7 @@ void* test_remover(void* db_) {
 
   for (int i = 0; i < items; i++) {
     sprintf(key, "%d", i);
-    bp_removes(db, key);
+    bp_remove_s(db, key);
     usleep(100);
   }
 

@@ -1,7 +1,7 @@
 #include "bplus.h"
-#include "private/values.h"
-#include "private/writer.h"
-#include "private/utils.h"
+#include "values.h"
+#include "writer.h"
+#include "utils.h"
 
 #include <stdlib.h> /* malloc, free */
 #include <string.h> /* memcpy */

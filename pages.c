@@ -3,8 +3,9 @@
 #include <assert.h> /* assert */
 
 #include "bplus.h"
-#include "private/pages.h"
-#include "private/utils.h"
+#include "tree.h"
+#include "pages.h"
+#include "utils.h"
 
 int bp__page_create(bp_db_t *t,
                     const enum page_type type,

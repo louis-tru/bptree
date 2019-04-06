@@ -1,7 +1,7 @@
 #ifndef _PRIVATE_COMPRESSOR_H_
 #define _PRIVATE_COMPRESSOR_H_
 
-#include "private/errors.h"
+#include "bplus.h"
 
 #include <unistd.h> /* size_t */
 
@@ -9,7 +9,7 @@
 extern "C" {
 #endif
 
-#if BP_USE_SNAPPY == 1
+#if BP_USE_SNAPPY
 #include <snappy-c.h>
 
 static inline

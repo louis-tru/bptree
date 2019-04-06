@@ -1,6 +1,7 @@
 #include "bplus.h"
-#include "private/writer.h"
-#include "private/compressor.h"
+#include "tree.h"
+#include "writer.h"
+#include "compressor.h"
 
 #include <fcntl.h> /* open */
 #include <unistd.h> /* close, write, read */
@@ -88,7 +89,7 @@ int bp__writer_compact_finalize(bp__writer_t *s, bp__writer_t *t)
 
     /* close both trees */
     bp__destroy((bp_db_t *) s);
-    ret = bp_close((bp_db_t *) t);
+    ret = bp__close((bp_db_t *) t);
     if (ret != BP_OK) goto fatal;
 
     if (rename(compacted_name, name) != 0) return BP_EFILERENAME;
@@ -131,10 +132,9 @@ int bp__writer_read(bp__writer_t *w,
         return BP_EFILEREAD;
     }
 
+#if BP_USE_SNAPPY
     /* no compression for head */
-    if (comp == kNotCompressed) {
-        *data = cdata;
-    } else {
+    if (comp == kCompressed) {
         int ret = 0;
 
         char *uncompressed = NULL;
@@ -160,7 +160,12 @@ int bp__writer_read(bp__writer_t *w,
             free(uncompressed);
             return ret;
         }
+    } else 
+#endif
+    {
+        *data = cdata;
     }
+
 
     return BP_OK;
 }
@@ -187,10 +192,9 @@ int bp__writer_write(bp__writer_t *w,
         return BP_OK;
     }
 
+#if BP_USE_SNAPPY
     /* head shouldn't be compressed */
-    if (comp == kNotCompressed) {
-        written = write(w->fd, data, *size);
-    } else {
+    if (comp == kCompressed) {
         int ret;
         size_t max_csize = bp__max_compressed_size(*size);
         size_t result_size;
@@ -207,6 +211,10 @@ int bp__writer_write(bp__writer_t *w,
         *size = result_size;
         written = write(w->fd, compressed, result_size);
         free(compressed);
+    } else 
+#endif
+    {
+       written = write(w->fd, data, *size);
     }
 
     if ((uint64_t) written != *size) return BP_EFILEWRITE;

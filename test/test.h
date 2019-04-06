@@ -23,11 +23,11 @@
         fprintf(stdout, "-- %s --\n", name);                    \
         TRY_REMOVE(db_file)                                     \
         bp_db_t db;                                             \
-        assert(bp_open(&db, "/tmp/" db_file ".bp") == 0);       \
+        assert(bp__open(&db, "/tmp/" db_file ".bp") == 0);       \
         const char *__db_file = "/tmp/" db_file ".bp";
 
 #define TEST_END(name, db_file)                                 \
-      assert(bp_close(&db) == 0);                               \
+      assert(bp__close(&db) == 0);                               \
       /* cleanup */                                             \
       TRY_REMOVE(db_file)                                       \
       fclose(stdout);                                           \

@@ -19,7 +19,7 @@ TEST_START("bulk set benchmark", "bulk-bench")
     fprintf(stdout, "%d items in db\n", start);
 
     BENCH_START(bulk, delta)
-    bp_bulk_sets(&db,
+    bp_bulk_set_s(&db,
                  delta,
                  (const char**) keys + start,
                  (const char**) keys + start);
@@ -37,7 +37,7 @@ TEST_START("bulk set benchmark", "bulk-bench")
     key = (char*) malloc(20);
     sprintf(key, "%0*d", 20, i);
 
-    assert(bp_gets(&db, key, &value) == BP_OK);
+    assert(bp_get_s(&db, key, &value) == BP_OK);
     assert(strcmp(value, key) == 0);
 
     free(key);

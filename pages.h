@@ -1,12 +1,12 @@
 #ifndef _PRIVATE_PAGES_H_
 #define _PRIVATE_PAGES_H_
 
+#include "bplus.h"
+#include "values.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include "private/tree.h"
-#include "private/values.h"
 
 typedef struct bp__page_s bp__page_t;
 typedef struct bp__page_search_res_s bp__page_search_res_t;

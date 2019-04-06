@@ -1,12 +1,14 @@
 #ifndef _PRIVATE_TREE_H_
 #define _PRIVATE_TREE_H_
 
+#include "bplus.h"
+#include "writer.h"
+#include "pages.h"
+#include "values.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include "private/writer.h"
-#include "private/pages.h"
 
 #include <pthread.h>
 
@@ -29,6 +31,8 @@ int bp__tree_write_head(bp__writer_t *w, void *data);
 int bp__default_compare_cb(const bp_key_t *a, const bp_key_t *b);
 int bp__default_filter_cb(void *arg, const bp_key_t *key);
 
+int bp__open(bp_db_t *tree, const char *filename);
+int bp__close(bp_db_t *tree);
 
 struct bp__tree_head_s {
     uint64_t offset;
@@ -37,6 +41,10 @@ struct bp__tree_head_s {
     uint64_t hash;
 
     bp__page_t *page;
+};
+
+struct bp_db_s {
+    BP_TREE_PRIVATE
 };
 
 #ifdef __cplusplus

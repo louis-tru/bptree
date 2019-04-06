@@ -1,22 +1,17 @@
 #ifndef _PRIVATE_VALUES_H_
 #define _PRIVATE_VALUES_H_
 
+#include <stdint.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include "private/tree.h"
-#include <stdint.h>
 
 #define BP__KV_HEADER_SIZE 24
 #define BP__KV_SIZE(kv)  BP__KV_HEADER_SIZE + kv.length
 #define BP__STOVAL(str, key)		\
     key.value = (char *) str;           \
     key.length = strlen(str) + 1;
-
-#define BP_KEY_PRIVATE                  \
-    uint64_t _prev_offset;              \
-    uint64_t _prev_length;
 
 typedef struct bp__kv_s bp__kv_t;
 
