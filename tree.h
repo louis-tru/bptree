@@ -15,10 +15,10 @@ extern "C" {
 #define BP__HEAD_SIZE  sizeof(uint64_t) * 4
 
 #define BP_TREE_PRIVATE         \
-    BP_WRITER_PRIVATE           \
-    pthread_rwlock_t rwlock;    \
-    bp__tree_head_t head;       \
-    bp_compare_cb compare_cb;
+	BP_WRITER_PRIVATE           \
+	pthread_rwlock_t rwlock;    \
+	bp__tree_head_t head;       \
+	bp_compare_cb compare_cb;
 
 typedef struct bp__tree_head_s bp__tree_head_t;
 
@@ -35,16 +35,16 @@ int bp__open(bp_db_t *tree, const char *filename);
 int bp__close(bp_db_t *tree);
 
 struct bp__tree_head_s {
-    uint64_t offset;
-    uint64_t config;
-    uint64_t page_size;
-    uint64_t hash;
+	uint64_t offset;
+	uint64_t config;
+	uint64_t page_size;
+	uint64_t hash;
 
-    bp__page_t *page;
+	bp__page_t *page;
 };
 
 struct bp_db_s {
-    BP_TREE_PRIVATE
+	BP_TREE_PRIVATE
 };
 
 #ifdef __cplusplus

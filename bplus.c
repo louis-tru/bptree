@@ -59,11 +59,11 @@ int bp__init(bp_db_t *tree)
 	 * that's why we're passing head size as compressed size here
 	 */
 	ret = bp__writer_find((bp__writer_t *) tree,
-						  kNotCompressed,
-						  BP__HEAD_SIZE,
-						  &tree->head,
-						  bp__tree_read_head,
-						  bp__tree_write_head);
+							kNotCompressed,
+							BP__HEAD_SIZE,
+							&tree->head,
+							bp__tree_read_head,
+							bp__tree_write_head);
 	if (ret == BP_OK) {
 		/* set default compare function */
 		bp_set_compare_cb(tree, bp__default_compare_cb);
@@ -103,16 +103,16 @@ int bp_get_previous(bp_db_t *tree,
 		return BP_ENOTFOUND;
 	}
 	return bp__value_load(tree,
-						  value->_prev_offset,
-						  value->_prev_length,
-						  previous);
+							value->_prev_offset,
+							value->_prev_length,
+							previous);
 }
 
 int bp_update(bp_db_t *tree,
-			  const bp_key_t *key,
-			  const bp_value_t *value,
-			  bp_update_cb update_cb,
-			  void *arg)
+				const bp_key_t *key,
+				const bp_value_t *value,
+				bp_update_cb update_cb,
+				void *arg)
 {
 	int ret;
 
@@ -129,11 +129,11 @@ int bp_update(bp_db_t *tree,
 }
 
 int bp_bulk_update(bp_db_t *tree,
-				   const uint64_t count,
-				   const bp_key_t **keys,
-				   const bp_value_t **values,
-				   bp_update_cb update_cb,
-				   void *arg)
+					 const uint64_t count,
+					 const bp_key_t **keys,
+					 const bp_value_t **values,
+					 bp_update_cb update_cb,
+					 void *arg)
 {
 	int ret;
 	bp_key_t *keys_iter = (bp_key_t *) *keys;
@@ -143,13 +143,13 @@ int bp_bulk_update(bp_db_t *tree,
 	pthread_rwlock_wrlock(&tree->rwlock);
 
 	ret = bp__page_bulk_insert(tree,
-							   tree->head.page,
-							   NULL,
-							   &left,
-							   &keys_iter,
-							   &values_iter,
-							   update_cb,
-							   arg);
+								 tree->head.page,
+								 NULL,
+								 &left,
+								 &keys_iter,
+								 &values_iter,
+								 update_cb,
+								 arg);
 	if (ret == BP_OK) {
 		ret =  bp__tree_write_head((bp__writer_t *) tree, NULL);
 	}
@@ -176,9 +176,9 @@ int bp_bulk_set(bp_db_t *tree,
 
 
 int bp_removev(bp_db_t *tree,
-			   const bp_key_t *key,
-			   bp_remove_cb remove_cb,
-			   void *arg)
+				 const bp_key_t *key,
+				 bp_remove_cb remove_cb,
+				 void *arg)
 {
 	int ret;
 
@@ -234,18 +234,18 @@ int bp_compact(bp_db_t *tree)
 	pthread_rwlock_wrlock(&tree->rwlock);
 
 	ret = bp__writer_compact_finalize((bp__writer_t *) tree,
-									  (bp__writer_t *) &compacted);
+										(bp__writer_t *) &compacted);
 	pthread_rwlock_unlock(&tree->rwlock);
 
 	return ret;
 }
 
 int bp_get_filtered_range(bp_db_t *tree,
-						  const bp_key_t *start,
-						  const bp_key_t *end,
-						  bp_filter_cb filter,
-						  bp_range_cb cb,
-						  void *arg)
+							const bp_key_t *start,
+							const bp_key_t *end,
+							bp_filter_cb filter,
+							bp_range_cb cb,
+							void *arg)
 {
 	int ret;
 
@@ -297,10 +297,10 @@ int bp_get_s(bp_db_t *tree, const char *key, char **value)
 }
 
 int bp_update_s(bp_db_t *tree,
-			   const char *key,
-			   const char *value,
-			   bp_update_cb update_cb,
-			   void *arg)
+				 const char *key,
+				 const char *value,
+				 bp_update_cb update_cb,
+				 void *arg)
 {
 	bp_key_t bkey;
 	bp_value_t bvalue;
@@ -384,11 +384,11 @@ int bp_remove_s(bp_db_t *tree, const char *key)
 }
 
 int bp_get_filtered_range_s(bp_db_t *tree,
-						   const char *start,
-						   const char *end,
-						   bp_filter_cb filter,
-						   bp_range_cb cb,
-						   void *arg)
+							 const char *start,
+							 const char *end,
+							 bp_filter_cb filter,
+							 bp_range_cb cb,
+							 void *arg)
 {
 	bp_key_t bstart;
 	bp_key_t bend;
@@ -400,17 +400,17 @@ int bp_get_filtered_range_s(bp_db_t *tree,
 }
 
 int bp_get_range_s(bp_db_t *tree,
-				  const char *start,
-				  const char *end,
-				  bp_range_cb cb,
-				  void *arg)
+					const char *start,
+					const char *end,
+					bp_range_cb cb,
+					void *arg)
 {
 	return bp_get_filtered_range_s(tree,
-								  start,
-								  end,
-								  bp__default_filter_cb,
-								  cb,
-								  arg);
+									start,
+									end,
+									bp__default_filter_cb,
+									cb,
+									arg);
 }
 
 /* various functions */
@@ -492,10 +492,10 @@ int bp__tree_write_head(bp__writer_t *w, void *data)
 
 	size = BP__HEAD_SIZE;
 	ret = bp__writer_write(w,
-						   kNotCompressed,
-						   &nhead,
-						   &offset,
-						   &size);
+							 kNotCompressed,
+							 &nhead,
+							 &offset,
+							 &size);
 
 	return ret;
 }
