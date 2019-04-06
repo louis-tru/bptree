@@ -26,7 +26,6 @@ extern "C" {
 #define BP_EFILEFLUSH      0x105
 #define BP_EFILERENAME     0x106
 #define BP_ECOMPACT_EXISTS 0x107
-#define BP_NO_MALLOC       0x108
 
 #define BP_ECOMP           0x201
 #define BP_EDECOMP         0x202
