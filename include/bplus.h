@@ -50,7 +50,7 @@ struct bp_key_s {
 	BP_KEY_PRIVATE
 };
 
-typedef int (*bp_compare_cb)(const bp_key_t *a, const bp_key_t *b);
+typedef int (*bp_compare_cb)(void *arg, const bp_key_t *a, const bp_key_t *b);
 typedef int (*bp_update_cb)(void *arg,
 														const bp_value_t *previous,
 														const bp_value_t *value);
@@ -72,6 +72,8 @@ int bp_close(bp_db_t *tree);
  */
 int bp_get(bp_db_t *tree, const bp_key_t *key, bp_value_t *value);
 int bp_get_s(bp_db_t *tree, const char *key, char **value);
+
+int bp_get_reverse(bp_db_t *tree, const bp_key_t *key, bp_value_t *value);
 
 /*
  * Get previous value
@@ -190,7 +192,7 @@ int bp_compact(bp_db_t *tree);
 /*
  * Set compare function to define order of keys in database
  */
-void bp_set_compare_cb(bp_db_t *tree, bp_compare_cb cb);
+void bp_set_compare_cb(bp_db_t *tree, bp_compare_cb cb, void* arg);
 
 /*
  * Ensure that all data is written to disk

@@ -265,24 +265,45 @@ int bp__page_save_value(bp_db_t *t,
 
 int bp__page_search(bp_db_t *t,
 					bp__page_t *page,
-					const bp_key_t *key,
+					const bp_key_t *key, int reverse,
 					const enum search_type type,
 					bp__page_search_res_t *result)
 {
 	int ret;
-	uint64_t i = page->type == kPage;
+	int64_t i;
 	int cmp = -1;
 	bp__page_t *child;
 
 	/* assert infinite recursion */
 	assert(page->type == kLeaf || page->length > 0);
 
-	while (i < page->length) {
-		/* left key is always lower in non-leaf nodes */
-		cmp = t->compare_cb((bp_key_t*) &page->keys[i], key);
+	if (reverse) {
+		i = page->length - 1;
+		if (page->type == kPage) i--;
 
-		if (cmp >= 0) break;
-		i++;
+		while (i >= 0) {
+			cmp = t->compare_cb(t->compare_cb_arg, (bp_key_t*) &page->keys[i], key);
+
+			if (cmp <= 0) break;
+			i--;
+		}
+
+		if (page->type == kPage)
+			if (cmp != 0) i++;
+	} else {
+		i = 0;
+		if (page->type == kPage) i++;
+
+		while (i < (int64_t)page->length) {
+			/* left key is always lower in non-leaf nodes */
+			cmp = t->compare_cb(t->compare_cb_arg, (bp_key_t*) &page->keys[i], key);
+
+			if (cmp >= 0) break;
+			i++;
+		}
+
+		if (page->type == kPage)
+			if (cmp != 0) i--;
 	}
 
 	result->cmp = cmp;
@@ -293,8 +314,6 @@ int bp__page_search(bp_db_t *t,
 
 		return BP_OK;
 	} else {
-		assert(i > 0);
-		if (cmp != 0) i--;
 
 		if (type == kLoad) {
 			ret = bp__page_load(t,
@@ -317,11 +336,11 @@ int bp__page_search(bp_db_t *t,
 int bp__page_get(bp_db_t *t,
 				 bp__page_t *page,
 				 const bp_key_t *key,
-				 bp_value_t *value)
+				 bp_value_t *value, int reverse)
 {
 	int ret;
 	bp__page_search_res_t res;
-	ret = bp__page_search(t, page, key, kLoad, &res);
+	ret = bp__page_search(t, page, key, reverse, kLoad, &res);
 	if (ret != BP_OK) return ret;
 
 	if (res.child == NULL) {
@@ -329,7 +348,7 @@ int bp__page_get(bp_db_t *t,
 
 		return bp__page_load_value(t, page, res.index, value);
 	} else {
-		ret = bp__page_get(t, res.child, key, value);
+		ret = bp__page_get(t, res.child, key, value, reverse);
 		bp__page_destroy(t, res.child);
 		res.child = NULL;
 		return ret;
@@ -349,9 +368,9 @@ int bp__page_get_range(bp_db_t *t,
 	bp__page_search_res_t start_res, end_res;
 
 	/* find start and end indexes */
-	ret = bp__page_search(t, page, start, kNotLoad, &start_res);
+	ret = bp__page_search(t, page, start, 0, kNotLoad, &start_res);
 	if (ret != BP_OK) return ret;
-	ret = bp__page_search(t, page, end, kNotLoad, &end_res);
+	ret = bp__page_search(t, page, end, 0, kNotLoad, &end_res);
 	if (ret != BP_OK) return ret;
 
 	if (page->type == kLeaf) {
@@ -406,7 +425,7 @@ int bp__page_insert(bp_db_t *t,
 {
 	int ret;
 	bp__page_search_res_t res;
-	ret = bp__page_search(t, page, key, kLoad, &res);
+	ret = bp__page_search(t, page, key, 0, kLoad, &res);
 	if (ret != BP_OK) return ret;
 
 	if (res.child == NULL) {
@@ -472,9 +491,9 @@ int bp__page_bulk_insert(bp_db_t *t,
 	bp__page_search_res_t res;
 
 	while (*count > 0 &&
-			(limit == NULL || t->compare_cb(limit, *keys) > 0)) {
+			(limit == NULL || t->compare_cb(t->compare_cb_arg, limit, *keys) > 0)) {
 
-		ret = bp__page_search(t, page, *keys, kLoad, &res);
+		ret = bp__page_search(t, page, *keys, 0, kLoad, &res);
 		if (ret != BP_OK) return ret;
 
 		if (res.child == NULL) {
@@ -550,7 +569,7 @@ int bp__page_remove(bp_db_t *t,
 {
 	int ret;
 	bp__page_search_res_t res;
-	ret = bp__page_search(t, page, key, kLoad, &res);
+	ret = bp__page_search(t, page, key, 0, kLoad, &res);
 	if (ret != BP_OK) return ret;
 
 	if (res.child == NULL) {

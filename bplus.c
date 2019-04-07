@@ -66,7 +66,7 @@ int bp__init(bp_db_t *tree)
 							bp__tree_write_head);
 	if (ret == BP_OK) {
 		/* set default compare function */
-		bp_set_compare_cb(tree, bp__default_compare_cb);
+		bp_set_compare_cb(tree, bp__default_compare_cb, NULL);
 	}
 
 	return ret;
@@ -81,17 +81,26 @@ void bp__destroy(bp_db_t *tree)
 	}
 }
 
-int bp_get(bp_db_t *tree, const bp_key_t* key, bp_value_t *value)
+static int bp__get(bp_db_t *tree, const bp_key_t* key, bp_value_t *value, int reverse)
 {
 	int ret;
 
 	pthread_rwlock_rdlock(&tree->rwlock);
 
-	ret = bp__page_get(tree, tree->head.page, key, value);
+	ret = bp__page_get(tree, tree->head.page, key, value, reverse);
 
 	pthread_rwlock_unlock(&tree->rwlock);
 
 	return ret;
+}
+
+int bp_get(bp_db_t *tree, const bp_key_t* key, bp_value_t *value) {
+	return bp__get(tree, key, value, 0);
+}
+
+int bp_get_reverse(bp_db_t *tree, const bp_key_t* key, bp_value_t *value)
+{
+	return bp__get(tree, key, value, 1);
 }
 
 
@@ -415,9 +424,10 @@ int bp_get_range_s(bp_db_t *tree,
 
 /* various functions */
 
-void bp_set_compare_cb(bp_db_t *tree, bp_compare_cb cb)
+void bp_set_compare_cb(bp_db_t *tree, bp_compare_cb cb, void* arg)
 {
 	tree->compare_cb = cb;
+	tree->compare_cb_arg = arg;
 }
 
 
@@ -500,7 +510,7 @@ int bp__tree_write_head(bp__writer_t *w, void *data)
 	return ret;
 }
 
-int bp__default_compare_cb(const bp_key_t *a, const bp_key_t *b)
+int bp__default_compare_cb(void *arg, const bp_key_t *a, const bp_key_t *b)
 {
 	uint32_t len = a->length < b->length ? a->length : b->length;
 

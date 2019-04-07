@@ -52,12 +52,13 @@ int bp__page_save_value(bp_db_t *t,
 int bp__page_search(bp_db_t *t,
 					bp__page_t *page,
 					const bp_key_t *key,
+					int reverse,
 					const enum search_type type,
 					bp__page_search_res_t *result);
 int bp__page_get(bp_db_t *t,
 				 bp__page_t *page,
 				 const bp_key_t *key,
-				 bp_value_t *value);
+				 bp_value_t *value, int reverse);
 int bp__page_get_range(bp_db_t *t,
 					   bp__page_t *page,
 					   const bp_key_t *start,
