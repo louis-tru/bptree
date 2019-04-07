@@ -7,6 +7,7 @@
 			'direct_dependent_settings': {
 				'include_dirs': [ 'include', ],
 			},
+			'cflags': [ '-std=c99' ], 
 			'sources': [
 				'include/bplus.h',
 				'bplus.c',
