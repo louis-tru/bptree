@@ -1,4 +1,7 @@
 {
+	'variables': {
+		'os%': 'linux',
+	},
 	'targets': [
 		{
 			'target_name': 'bplus-tree',
@@ -7,7 +10,14 @@
 			'direct_dependent_settings': {
 				'include_dirs': [ 'include', ],
 			},
-			'cflags': [ '-std=c99' ], 
+			'cflags': [ '-std=c99', '-pedantic', '-pthread', '-O3' ],
+			'ldflags': [ '-pthread' ],
+			'defines': [
+				'_LARGEFILE_SOURCE',
+				'_FILE_OFFSET_BITS=64',
+				'_XOPEN_SOURCE=500',
+				'_DARWIN_C_SOURCE',
+			],
 			'sources': [
 				'include/bplus.h',
 				'bplus.c',

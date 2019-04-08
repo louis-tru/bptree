@@ -5,12 +5,11 @@
 #include "writer.h"
 #include "pages.h"
 #include "values.h"
+#include <pthread.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include <pthread.h>
 
 #define BP__HEAD_SIZE  sizeof(uint64_t) * 4
 
