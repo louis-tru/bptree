@@ -4,7 +4,7 @@
 	},
 	'targets': [
 		{
-			'target_name': 'bplus-tree',
+			'target_name': 'bplus',
 			'type': 'static_library',
 			'include_dirs': [ 'include', ],
 			'direct_dependent_settings': {
