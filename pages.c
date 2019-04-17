@@ -155,7 +155,7 @@ int bp__page_save(bp_db_t *t, bp__page_t *page)
 	int ret;
 	bp__writer_t *w = (bp__writer_t *) t;
 	uint64_t i;
-	uint64_t o;
+	static uint64_t o;
 	char *buff;
 
 	assert(page->type == kLeaf || page->length != 0);
@@ -168,9 +168,20 @@ int bp__page_save(bp_db_t *t, bp__page_t *page)
 	for (i = 0; i < page->length; i++) {
 		assert(o + BP__KV_SIZE(page->keys[i]) <= page->byte_size);
 
-		*(uint64_t *) (buff + o) = htonll(page->keys[i].length);
-		*(uint64_t *) (buff + o + 8) = htonll(page->keys[i].offset);
-		*(uint64_t *) (buff + o + 16) = htonll(page->keys[i].config);
+		uint64_t a,b,c,d;
+
+		a = htonll(page->keys[i].length);
+		b = htonll(page->keys[i].offset);
+		c = htonll(page->keys[i].config);
+
+		memcpy(buff + o, &a, sizeof(uint64_t));
+		memcpy(buff + o + 8, &b, sizeof(uint64_t));
+		memcpy(buff + o + 16, &c, sizeof(uint64_t));
+
+		// TODO Android: SIGBUS (signal SIGBUS: illegal alignment)
+		// *((uint64_t *) (buff + o)) = a;
+		// *((uint64_t *) (buff + o + 8)) = b;
+		// *((uint64_t *) (buff + o + 16)) = c;
 
 		memcpy(buff + o + 24, page->keys[i].value, page->keys[i].length);
 
