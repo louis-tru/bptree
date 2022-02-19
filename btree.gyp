@@ -4,7 +4,7 @@
 	},
 	'targets': [
 		{
-			'target_name': 'bplus',
+			'target_name': 'btree',
 			'type': 'static_library',
 			'include_dirs': [ 'include', ],
 			'direct_dependent_settings': {
@@ -19,8 +19,8 @@
 				'_DARWIN_C_SOURCE',
 			],
 			'sources': [
-				'include/bplus.h',
-				'bplus.c',
+				'include/btree.h',
+				'btree.c',
 				'compressor.h',
 				'pages.c',
 				'pages.h',

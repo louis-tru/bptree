@@ -1,7 +1,7 @@
 #ifndef _PRIVATE_PAGES_H_
 #define _PRIVATE_PAGES_H_
 
-#include "bplus.h"
+#include "btree.h"
 #include "values.h"
 
 #ifdef __cplusplus

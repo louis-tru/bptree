@@ -1,7 +1,7 @@
 #ifndef _PRIVATE_TREE_H_
 #define _PRIVATE_TREE_H_
 
-#include "bplus.h"
+#include "btree.h"
 #include "writer.h"
 #include "pages.h"
 #include "values.h"
