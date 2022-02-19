@@ -18,7 +18,7 @@ make check
 #include <stdlib.h>
 #include <stdio.h>
 
-#include "bplus.h"
+#include "btree.h"
 
 int main(void) {
   bp_db_t *db;
