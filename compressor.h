@@ -1,7 +1,7 @@
 #ifndef _PRIVATE_COMPRESSOR_H_
 #define _PRIVATE_COMPRESSOR_H_
 
-#include "btree.h"
+#include "bptree.h"
 
 #include <unistd.h> /* size_t */
 
