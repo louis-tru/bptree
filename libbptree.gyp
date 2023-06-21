@@ -4,7 +4,7 @@
 	},
 	'targets': [
 		{
-			'target_name': 'libbptree',
+			'target_name': 'libBPtree',
 			'type': 'static_library',
 			'include_dirs': [ 'include', ],
 			'direct_dependent_settings': {
@@ -19,8 +19,8 @@
 				'_DARWIN_C_SOURCE',
 			],
 			'sources': [
-				'include/bptree.h',
-				'bptree.c',
+				'include/b+tree.h',
+				'b+tree.c',
 				'compressor.h',
 				'pages.c',
 				'pages.h',
