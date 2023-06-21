@@ -2,7 +2,7 @@
 #include <string.h> /* memcpy */
 #include <assert.h> /* assert */
 
-#include "b+tree.h"
+#include "BPtree.h"
 #include "tree.h"
 #include "pages.h"
 #include "utils.h"

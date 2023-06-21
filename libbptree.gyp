@@ -19,8 +19,8 @@
 				'_DARWIN_C_SOURCE',
 			],
 			'sources': [
-				'include/b+tree.h',
-				'b+tree.c',
+				'include/BPtree.h',
+				'bptree.c',
 				'compressor.h',
 				'pages.c',
 				'pages.h',

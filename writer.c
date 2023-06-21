@@ -1,4 +1,4 @@
-#include "b+tree.h"
+#include "BPtree.h"
 #include "tree.h"
 #include "writer.h"
 #include "compressor.h"
