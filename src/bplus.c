@@ -4,12 +4,28 @@
 #include "tree.h"
 #include "utils.h"
 
+#define _USE_pthread_rwlock 0
+
+#if _USE_pthread_rwlock
+# define _pthread_rwlock_destroy(rwlock) pthread_rwlock_destroy(rwlock)
+# define _pthread_rwlock_wrlock(rwlock) pthread_rwlock_wrlock(rwlock)
+# define _pthread_rwlock_unlock(rwlock) pthread_rwlock_unlock(rwlock)
+# define _pthread_rwlock_rdlock(rwlock) pthread_rwlock_rdlock(rwlock)
+#else
+# define _pthread_rwlock_destroy(rwlock)
+# define _pthread_rwlock_wrlock(rwlock)
+# define _pthread_rwlock_unlock(rwlock)
+# define _pthread_rwlock_rdlock(rwlock)
+#endif
+
 int bp__open(bp_db_t *tree, const char* filename)
 {
 	int ret;
 
+#if _USE_pthread_rwlock
 	ret = pthread_rwlock_init(&tree->rwlock, NULL) ? BP_ERWLOCK : BP_OK;
 	if (ret != BP_OK) return ret;
+#endif
 
 	ret = bp__writer_create((bp__writer_t*) tree, filename);
 	if (ret != BP_OK) goto fatal;
@@ -22,26 +38,31 @@ int bp__open(bp_db_t *tree, const char* filename)
 	return BP_OK;
 
 fatal:
-	pthread_rwlock_destroy(&tree->rwlock);
+	_pthread_rwlock_destroy(&tree->rwlock);
 	return ret;
 }
 
 int bp__close(bp_db_t *tree)
 {
-	pthread_rwlock_wrlock(&tree->rwlock);
+	_pthread_rwlock_wrlock(&tree->rwlock);
 	bp__destroy(tree);
-	pthread_rwlock_unlock(&tree->rwlock);
+	_pthread_rwlock_unlock(&tree->rwlock);
 
-	pthread_rwlock_destroy(&tree->rwlock);
+	_pthread_rwlock_destroy(&tree->rwlock);
 	return BP_OK;
 }
 
 int bp_open(bp_db_t **tree, const char* filename) {
-	*tree = NULL;
-	*tree = malloc(sizeof(bp_db_t));
-	if (!*tree)
+	bp_db_t *db = malloc(sizeof(bp_db_t));
+	if (!db)
 		return BP_EALLOC;
-	return bp__open(*tree, filename);
+	int r = bp__open(db, filename);
+	if (BP_OK == r) {
+		*tree = db;
+	} else {
+		free(db);
+	}
+	return r;
 }
 
 int bp_close(bp_db_t *tree) {
@@ -85,11 +106,11 @@ static int bp__get(bp_db_t *tree, const bp_key_t* key, bp_value_t *value, int re
 {
 	int ret;
 
-	pthread_rwlock_rdlock(&tree->rwlock);
+	_pthread_rwlock_rdlock(&tree->rwlock);
 
 	ret = bp__page_get(tree, tree->head.page, key, value, reverse);
 
-	pthread_rwlock_unlock(&tree->rwlock);
+	_pthread_rwlock_unlock(&tree->rwlock);
 
 	return ret;
 }
@@ -125,14 +146,14 @@ int bp_update(bp_db_t *tree,
 {
 	int ret;
 
-	pthread_rwlock_wrlock(&tree->rwlock);
+	_pthread_rwlock_wrlock(&tree->rwlock);
 
 	ret = bp__page_insert(tree, tree->head.page, key, value, update_cb, arg);
 	if (ret == BP_OK) {
 		ret = bp__tree_write_head((bp__writer_t*) tree, NULL);
 	}
 
-	pthread_rwlock_unlock(&tree->rwlock);
+	_pthread_rwlock_unlock(&tree->rwlock);
 
 	return ret;
 }
@@ -149,7 +170,7 @@ int bp_bulk_update(bp_db_t *tree,
 	bp_value_t* values_iter = (bp_value_t *) *values;
 	uint64_t left = count;
 
-	pthread_rwlock_wrlock(&tree->rwlock);
+	_pthread_rwlock_wrlock(&tree->rwlock);
 
 	ret = bp__page_bulk_insert(tree,
 								 tree->head.page,
@@ -163,7 +184,7 @@ int bp_bulk_update(bp_db_t *tree,
 		ret =  bp__tree_write_head((bp__writer_t *) tree, NULL);
 	}
 
-	pthread_rwlock_unlock(&tree->rwlock);
+	_pthread_rwlock_unlock(&tree->rwlock);
 
 	return ret;
 }
@@ -191,14 +212,14 @@ int bp_removev(bp_db_t *tree,
 {
 	int ret;
 
-	pthread_rwlock_wrlock(&tree->rwlock);
+	_pthread_rwlock_wrlock(&tree->rwlock);
 
 	ret = bp__page_remove(tree, tree->head.page, key, remove_cb, arg);
 	if (ret == BP_OK) {
 		ret = bp__tree_write_head((bp__writer_t *) tree, NULL);
 	}
 
-	pthread_rwlock_unlock(&tree->rwlock);
+	_pthread_rwlock_unlock(&tree->rwlock);
 
 	return ret;
 }
@@ -226,12 +247,12 @@ int bp_compact(bp_db_t *tree)
 	/* destroy stub head page */
 	bp__page_destroy(&compacted, compacted.head.page);
 
-	pthread_rwlock_rdlock(&tree->rwlock);
+	_pthread_rwlock_rdlock(&tree->rwlock);
 
 	/* clone source tree's head page */
 	ret = bp__page_clone(&compacted, tree->head.page, &compacted.head.page);
 
-	pthread_rwlock_unlock(&tree->rwlock);
+	_pthread_rwlock_unlock(&tree->rwlock);
 
 	/* copy all pages starting from head */
 	ret = bp__page_copy(tree, &compacted, compacted.head.page);
@@ -240,11 +261,11 @@ int bp_compact(bp_db_t *tree)
 	ret = bp__tree_write_head((bp__writer_t *) &compacted, NULL);
 	if (ret != BP_OK) return ret;
 
-	pthread_rwlock_wrlock(&tree->rwlock);
+	_pthread_rwlock_wrlock(&tree->rwlock);
 
 	ret = bp__writer_compact_finalize((bp__writer_t *) tree,
 										(bp__writer_t *) &compacted);
-	pthread_rwlock_unlock(&tree->rwlock);
+	_pthread_rwlock_unlock(&tree->rwlock);
 
 	return ret;
 }
@@ -258,7 +279,7 @@ int bp_get_filtered_range(bp_db_t *tree,
 {
 	int ret;
 
-	pthread_rwlock_rdlock(&tree->rwlock);
+	_pthread_rwlock_rdlock(&tree->rwlock);
 
 	ret = bp__page_get_range(tree,
 							 tree->head.page,
@@ -268,7 +289,7 @@ int bp_get_filtered_range(bp_db_t *tree,
 							 cb,
 							 arg);
 
-	pthread_rwlock_unlock(&tree->rwlock);
+	_pthread_rwlock_unlock(&tree->rwlock);
 
 	return ret;
 }
@@ -435,9 +456,9 @@ int bp_fsync(bp_db_t *tree)
 {
 	int ret;
 
-	pthread_rwlock_wrlock(&tree->rwlock);
+	_pthread_rwlock_wrlock(&tree->rwlock);
 	ret = bp__writer_fsync((bp__writer_t *) tree);
-	pthread_rwlock_unlock(&tree->rwlock);
+	_pthread_rwlock_unlock(&tree->rwlock);
 
 	return ret;
 }
@@ -450,10 +471,10 @@ int bp__tree_read_head(bp__writer_t *w, void *data)
 	bp_db_t *t = (bp_db_t *) w;
 	bp__tree_head_t* head = (bp__tree_head_t *) data;
 
-	t->head.offset = ntohll(head->offset);
-	t->head.config = ntohll(head->config);
-	t->head.page_size = ntohll(head->page_size);
-	t->head.hash = ntohll(head->hash);
+	t->head.offset = ntohll_(head->offset);
+	t->head.config = ntohll_(head->config);
+	t->head.page_size = ntohll_(head->page_size);
+	t->head.hash = ntohll_(head->hash);
 
 	/* we've copied all data - free it */
 	free(data);
@@ -495,10 +516,10 @@ int bp__tree_write_head(bp__writer_t *w, void *data)
 	t->head.hash = bp__compute_hashl(t->head.offset);
 
 	/* Create temporary head with fields in network byte order */
-	nhead.offset = htonll(t->head.offset);
-	nhead.config = htonll(t->head.config);
-	nhead.page_size = htonll(t->head.page_size);
-	nhead.hash = htonll(t->head.hash);
+	nhead.offset = htonll_(t->head.offset);
+	nhead.config = htonll_(t->head.config);
+	nhead.page_size = htonll_(t->head.page_size);
+	nhead.hash = htonll_(t->head.hash);
 
 	size = BP__HEAD_SIZE;
 	ret = bp__writer_write(w,

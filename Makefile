@@ -42,11 +42,11 @@ ifneq ($(SNAPPY),0)
 	OBJS += external/snappy/snappy-c.o
 endif
 
-OBJS += utils.o
-OBJS += writer.o
-OBJS += values.o
-OBJS += pages.o
-OBJS += bplus.o
+OBJS += src/utils.o
+OBJS += src/writer.o
+OBJS += src/values.o
+OBJS += src/pages.o
+OBJS += src/bplus.o
 
 deps := $(OBJS:%.o=%.o.d)
 
@@ -56,7 +56,7 @@ libbplus.so: libbplus.a
 libbplus.a: $(OBJS)
 	$(AR) rcs libbplus.a $(OBJS)
 
-%.o: %.c
+src/%.o: src/%.c
 	$(CC) $(CFLAGS) $(CSTDFLAG) $(CPPFLAGS) $(DEFINES) \
 		-o $@ -MMD -MF $@.d -c $<
 

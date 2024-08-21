@@ -23,11 +23,11 @@ uint64_t bp__compute_hashl(uint64_t key)
 	uint32_t keyl = key & 0xffffffffLL;
 
 	return ((uint64_t) bp__compute_hash(keyh) << 32) |
-					   bp__compute_hash(keyl);
+						bp__compute_hash(keyl);
 }
 
-#ifndef __APPLE__
-uint64_t htonll(uint64_t value)
+// #ifndef __APPLE__
+uint64_t htonll_(uint64_t value)
 {
 	static const int num = 23;
 
@@ -39,7 +39,7 @@ uint64_t htonll(uint64_t value)
 	return ((uint64_t) low_part << 32) | high_part;
 }
 
-uint64_t ntohll(uint64_t value)
+uint64_t ntohll_(uint64_t value)
 {
 	static const int num = 23;
 
@@ -50,4 +50,4 @@ uint64_t ntohll(uint64_t value)
 
 	return ((uint64_t) low_part << 32) | high_part;
 }
-#endif
+// #endif

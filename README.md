@@ -1,4 +1,9 @@
-# B+ tree implementation in C
+# What is B+ Tree?
+A B-tree is a self-balancing tree data structure that maintains sorted data and allows searches, sequential access, insertions, and deletions in logarithmic time. The B-tree generalizes the binary search tree, allowing for nodes with more than two children.
+
+For more info [Click](https://en.wikipedia.org/wiki/B-tree#:~:text=In%20computer%20science%2C%20a%20B,with%20more%20than%20two%20children) .
+
+# Implementation of B+ tree using C
 
 ## Depedency
 The implementation depends on Google's [snappy](https://github.com/google/snappy) library for fast compression.
@@ -18,7 +23,7 @@ make check
 #include <stdlib.h>
 #include <stdio.h>
 
-#include "bptree.h"
+#include "bplus.h"
 
 int main(void) {
   bp_db_t *db;
@@ -27,11 +32,11 @@ int main(void) {
   bp_open(&db, "/tmp/1.bp");
 
   /* Set some value */
-  bp_set_s(db, "key", "value");
+  bp_sets(db, "key", "value");
 
   /* Get some value */
   bp_value_t value;
-  bp_get_s(db, "key", &value);
+  bp_gets(db, "key", &value);
   fprintf(stdout, "%s\n", value.value);
   free(value.value)
 

@@ -17,14 +17,14 @@ typedef struct bp__kv_s bp__kv_t;
 
 
 int bp__value_load(bp_db_t *t,
-				   const uint64_t offset,
-				   const uint64_t length,
-				   bp_value_t *value);
+						const uint64_t offset,
+						const uint64_t length,
+						bp_value_t *value);
 int bp__value_save(bp_db_t *t,
-				   const bp_value_t *value,
-				   const bp__kv_t *previous,
-				   uint64_t *offset,
-				   uint64_t *length);
+						const bp_value_t *value,
+						const bp__kv_t *previous,
+						uint64_t *offset,
+						uint64_t *length);
 
 int bp__kv_copy(const bp__kv_t *source, bp__kv_t *target, int alloc);
 

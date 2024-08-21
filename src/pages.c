@@ -2,7 +2,7 @@
 #include <string.h> /* memcpy */
 #include <assert.h> /* assert */
 
-#include "bptree.h"
+#include "bplus.h"
 #include "tree.h"
 #include "pages.h"
 #include "utils.h"
@@ -107,9 +107,9 @@ int bp__page_read(bp_db_t *t, bp__page_t *page)
 	i = 0;
 	o = 0;
 	while (o < size) {
-		page->keys[i].length = ntohll(*(uint64_t *) (buff + o));
-		page->keys[i].offset = ntohll(*(uint64_t *) (buff + o + 8));
-		page->keys[i].config = ntohll(*(uint64_t *) (buff + o + 16));
+		page->keys[i].length = ntohll_(*(uint64_t *) (buff + o));
+		page->keys[i].offset = ntohll_(*(uint64_t *) (buff + o + 8));
+		page->keys[i].config = ntohll_(*(uint64_t *) (buff + o + 16));
 		page->keys[i].value = buff + o + 24;
 		page->keys[i].allocated = 0;
 
@@ -155,7 +155,7 @@ int bp__page_save(bp_db_t *t, bp__page_t *page)
 	int ret;
 	bp__writer_t *w = (bp__writer_t *) t;
 	uint64_t i;
-	static uint64_t o;
+	uint64_t o;
 	char *buff;
 
 	assert(page->type == kLeaf || page->length != 0);
@@ -168,11 +168,12 @@ int bp__page_save(bp_db_t *t, bp__page_t *page)
 	for (i = 0; i < page->length; i++) {
 		assert(o + BP__KV_SIZE(page->keys[i]) <= page->byte_size);
 
-		uint64_t a,b,c,d;
+		/*
+		uint64_t a,b,c;
 
-		a = htonll(page->keys[i].length);
-		b = htonll(page->keys[i].offset);
-		c = htonll(page->keys[i].config);
+		a = htonll_(page->keys[i].length);
+		b = htonll_(page->keys[i].offset);
+		c = htonll_(page->keys[i].config);
 
 		memcpy(buff + o, &a, sizeof(uint64_t));
 		memcpy(buff + o + 8, &b, sizeof(uint64_t));
@@ -182,6 +183,10 @@ int bp__page_save(bp_db_t *t, bp__page_t *page)
 		// *((uint64_t *) (buff + o)) = a;
 		// *((uint64_t *) (buff + o + 8)) = b;
 		// *((uint64_t *) (buff + o + 16)) = c;
+		*/
+		*(uint64_t *) (buff + o) = htonll_(page->keys[i].length);
+		*(uint64_t *) (buff + o + 8) = htonll_(page->keys[i].offset);
+		*(uint64_t *) (buff + o + 16) = htonll_(page->keys[i].config);
 
 		memcpy(buff + o + 24, page->keys[i].value, page->keys[i].length);
 

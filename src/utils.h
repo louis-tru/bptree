@@ -9,10 +9,10 @@ extern "C" {
 
 uint64_t bp__compute_hashl(uint64_t key);
 
-#ifndef __APPLE__
-uint64_t htonll(uint64_t value);
-uint64_t ntohll(uint64_t value);
-#endif
+// #ifndef __APPLE__
+uint64_t htonll_(uint64_t value);
+uint64_t ntohll_(uint64_t value);
+// #endif
 
 #ifdef __cplusplus
 } // extern "C"

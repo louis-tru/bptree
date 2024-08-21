@@ -1,4 +1,4 @@
-#include "bptree.h"
+#include "bplus.h"
 #include "values.h"
 #include "writer.h"
 #include "utils.h"
@@ -31,8 +31,8 @@ int bp__value_load(bp_db_t *t,
 	}
 
 	/* first 16 bytes are representing previous value */
-	value->_prev_offset = ntohll(*(uint64_t *) (buff));
-	value->_prev_length = ntohll(*(uint64_t *) (buff + 8));
+	value->_prev_offset = ntohll_(*(uint64_t *) (buff));
+	value->_prev_length = ntohll_(*(uint64_t *) (buff + 8));
 
 	/* copy the rest into result buffer */
 	memcpy(value->value, buff + 16, buff_len - 16);
@@ -58,8 +58,8 @@ int bp__value_save(bp_db_t *t,
 
 	/* insert offset, length of previous value */
 	if (previous != NULL) {
-		*(uint64_t *) (buff) = htonll(previous->offset);
-		*(uint64_t *) (buff + 8) = htonll(previous->length);
+		*(uint64_t *) (buff) = htonll_(previous->offset);
+		*(uint64_t *) (buff + 8) = htonll_(previous->length);
 	} else {
 		*(uint64_t *) (buff) = 0;
 		*(uint64_t *) (buff + 8) = 0;

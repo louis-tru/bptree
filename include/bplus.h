@@ -7,48 +7,14 @@
 extern "C" {
 #endif
 
+#include "errors.h"
+
 #define BP_PADDING 64
-
-#define BP_KEY_FIELDS   \
-		uint64_t length;    \
-		char *value;
-
-#define BP_KEY_PRIVATE                  \
-    uint64_t _prev_offset;              \
-    uint64_t _prev_length;
-
-#define BP_OK              0
-
-#define BP_EFILE           0x101
-#define BP_EFILEREAD_OOB   0x102
-#define BP_EFILEREAD       0x103
-#define BP_EFILEWRITE      0x104
-#define BP_EFILEFLUSH      0x105
-#define BP_EFILERENAME     0x106
-#define BP_ECOMPACT_EXISTS 0x107
-
-#define BP_ECOMP           0x201
-#define BP_EDECOMP         0x202
-
-#define BP_EALLOC          0x301
-#define BP_EMUTEX          0x302
-#define BP_ERWLOCK         0x303
-
-#define BP_ENOTFOUND       0x401
-#define BP_ESPLITPAGE      0x402
-#define BP_EEMPTYPAGE      0x403
-#define BP_EUPDATECONFLICT 0x404
-#define BP_EREMOVECONFLICT 0x405
 
 typedef struct bp_db_s bp_db_t;
 
 typedef struct bp_key_s bp_key_t;
 typedef struct bp_key_s bp_value_t;
-
-struct bp_key_s {
-	BP_KEY_FIELDS
-	BP_KEY_PRIVATE
-};
 
 typedef int (*bp_compare_cb)(void *arg, const bp_key_t *a, const bp_key_t *b);
 typedef int (*bp_update_cb)(void *arg,
@@ -198,6 +164,20 @@ void bp_set_compare_cb(bp_db_t *tree, bp_compare_cb cb, void* arg);
  * Ensure that all data is written to disk
  */
 int bp_fsync(bp_db_t *tree);
+
+
+#define BP_KEY_FIELDS   \
+		uint64_t length;    \
+		char *value;
+
+#define BP_KEY_PRIVATE                  \
+		uint64_t _prev_offset;              \
+		uint64_t _prev_length;
+
+struct bp_key_s {
+	BP_KEY_FIELDS
+	BP_KEY_PRIVATE
+};
 
 #ifdef __cplusplus
 } // extern "C"
