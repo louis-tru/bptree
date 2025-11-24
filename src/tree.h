@@ -5,7 +5,6 @@
 #include "writer.h"
 #include "pages.h"
 #include "values.h"
-#include <pthread.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -13,9 +12,12 @@ extern "C" {
 
 #define BP__HEAD_SIZE  sizeof(uint64_t) * 4
 
+struct qk_rwlock_t_;
+typedef struct qk_rwlock_t_* qk_rwlock_t;
+
 #define BP_TREE_PRIVATE         \
 	BP_WRITER_PRIVATE           \
-	pthread_rwlock_t rwlock;    \
+	qk_rwlock_t rwlock;          \
 	bp__tree_head_t head;       \
 	bp_compare_cb compare_cb;   \
 	void* compare_cb_arg;

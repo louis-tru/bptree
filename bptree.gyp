@@ -1,4 +1,7 @@
 {
+	'variables': {
+		'use_qk_rwlock%': 0,
+	},
 	'targets': [
 		{
 			'target_name': 'bptree',
@@ -7,13 +10,21 @@
 			'direct_dependent_settings': {
 				'include_dirs': [ 'include', ],
 			},
-			'cflags': [ '-std=c99', '-pedantic', '-pthread', '-O3' ],
-			'ldflags': [ '-pthread' ],
+			'cflags': [ '-std=c99', '-pedantic', '-O3' ],
 			'defines': [
 				'_LARGEFILE_SOURCE',
 				'_FILE_OFFSET_BITS=64',
 				'_XOPEN_SOURCE=500',
 				'_DARWIN_C_SOURCE',
+			],
+			'conditions': [
+				['use_qk_rwlock==1', {
+					'defines': [ '_USE_qk_rwlock=1' ],
+				}, {
+					'defines': [ '_USE_pthread_rwlock=1' ],
+					'cflags': [ '-pthread' ],
+					'ldflags': [ '-pthread' ],
+				}],
 			],
 			'sources': [
 				'include/bplus.h',

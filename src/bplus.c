@@ -4,28 +4,56 @@
 #include "tree.h"
 #include "utils.h"
 
-#define _USE_pthread_rwlock 0
-
-#if _USE_pthread_rwlock
-# define _pthread_rwlock_destroy(rwlock) pthread_rwlock_destroy(rwlock)
-# define _pthread_rwlock_wrlock(rwlock) pthread_rwlock_wrlock(rwlock)
-# define _pthread_rwlock_unlock(rwlock) pthread_rwlock_unlock(rwlock)
-# define _pthread_rwlock_rdlock(rwlock) pthread_rwlock_rdlock(rwlock)
+#if _USE_qk_rwlock
+qk_rwlock_t qk_rwlock_create();
+void qk_rwlock_destroy(qk_rwlock_t lock);
+void qk_rwlock_rdlock(qk_rwlock_t lock);
+void qk_rwlock_wrlock(qk_rwlock_t lock);
+void qk_rwlock_unlock_rd(qk_rwlock_t lock);
+void qk_rwlock_unlock_wr(qk_rwlock_t lock);
+#define _pthread_rwlock_new()              qk_rwlock_create()
+#define _pthread_rwlock_destroy(rwlock)    qk_rwlock_destroy(rwlock)
+#define _pthread_rwlock_rdlock(rwlock)     qk_rwlock_rdlock(rwlock)
+#define _pthread_rwlock_wrlock(rwlock)     qk_rwlock_wrlock(rwlock)
+#define _pthread_rwlock_unlock_rd(rwlock)  qk_rwlock_unlock_rd(rwlock)
+#define _pthread_rwlock_unlock_wr(rwlock)  qk_rwlock_unlock_wr(rwlock)
+#elif _USE_pthread_rwlock
+#include <pthread.h>
+qk_rwlock_t _pthread_rwlock_new() {
+	pthread_rwlock_t* rwlock = (pthread_rwlock_t*)malloc(sizeof(pthread_rwlock_t));
+	if (!rwlock) return NULL;
+	int err = pthread_rwlock_init(rwlock, NULL);
+	if (err != 0) {
+		free(rwlock);
+		return NULL;
+	}
+	return (qk_rwlock_t)rwlock;
+}
+void _pthread_rwlock_destroy(qk_rwlock_t rwlock) {
+	if (!rwlock) return;
+	pthread_rwlock_destroy((pthread_rwlock_t*)rwlock);
+	free(rwlock);
+}
+#define _pthread_rwlock_rdlock(rwlock)     pthread_rwlock_rdlock((pthread_rwlock_t*)(rwlock))
+#define _pthread_rwlock_wrlock(rwlock)     pthread_rwlock_wrlock((pthread_rwlock_t*)(rwlock))
+#define _pthread_rwlock_unlock_rd(rwlock)  pthread_rwlock_unlock((pthread_rwlock_t*)(rwlock))
+#define _pthread_rwlock_unlock_wr(rwlock)  pthread_rwlock_unlock((pthread_rwlock_t*)(rwlock))
 #else
-# define _pthread_rwlock_destroy(rwlock)
-# define _pthread_rwlock_wrlock(rwlock)
-# define _pthread_rwlock_unlock(rwlock)
-# define _pthread_rwlock_rdlock(rwlock)
+// no lock mode
+#define _pthread_rwlock_new(rwlock) (0)
+#define _pthread_rwlock_destroy(rwlock)
+#define _pthread_rwlock_rdlock(rwlock)
+#define _pthread_rwlock_wrlock(rwlock)
+#define _pthread_rwlock_unlock_rd(rwlock)
+#define _pthread_rwlock_unlock_wr(rwlock)
 #endif
 
 int bp__open(bp_db_t *tree, const char* filename)
 {
 	int ret;
 
-#if _USE_pthread_rwlock
-	ret = pthread_rwlock_init(&tree->rwlock, NULL) ? BP_ERWLOCK : BP_OK;
-	if (ret != BP_OK) return ret;
-#endif
+	tree->rwlock = _pthread_rwlock_new();
+	if (!tree->rwlock) return BP_ERWLOCK;
 
 	ret = bp__writer_create((bp__writer_t*) tree, filename);
 	if (ret != BP_OK) goto fatal;
@@ -38,17 +66,17 @@ int bp__open(bp_db_t *tree, const char* filename)
 	return BP_OK;
 
 fatal:
-	_pthread_rwlock_destroy(&tree->rwlock);
+	_pthread_rwlock_destroy(tree->rwlock);
 	return ret;
 }
 
 int bp__close(bp_db_t *tree)
 {
-	_pthread_rwlock_wrlock(&tree->rwlock);
+	_pthread_rwlock_wrlock(tree->rwlock);
 	bp__destroy(tree);
-	_pthread_rwlock_unlock(&tree->rwlock);
+	_pthread_rwlock_unlock_wr(tree->rwlock);
 
-	_pthread_rwlock_destroy(&tree->rwlock);
+	_pthread_rwlock_destroy(tree->rwlock);
 	return BP_OK;
 }
 
@@ -106,11 +134,11 @@ static int bp__get(bp_db_t *tree, const bp_key_t* key, bp_value_t *value, int re
 {
 	int ret;
 
-	_pthread_rwlock_rdlock(&tree->rwlock);
+	_pthread_rwlock_rdlock(tree->rwlock);
 
 	ret = bp__page_get(tree, tree->head.page, key, value, reverse);
 
-	_pthread_rwlock_unlock(&tree->rwlock);
+	_pthread_rwlock_unlock_rd(tree->rwlock);
 
 	return ret;
 }
@@ -146,14 +174,14 @@ int bp_update(bp_db_t *tree,
 {
 	int ret;
 
-	_pthread_rwlock_wrlock(&tree->rwlock);
+	_pthread_rwlock_wrlock(tree->rwlock);
 
 	ret = bp__page_insert(tree, tree->head.page, key, value, update_cb, arg);
 	if (ret == BP_OK) {
 		ret = bp__tree_write_head((bp__writer_t*) tree, NULL);
 	}
 
-	_pthread_rwlock_unlock(&tree->rwlock);
+	_pthread_rwlock_unlock_wr(tree->rwlock);
 
 	return ret;
 }
@@ -170,7 +198,7 @@ int bp_bulk_update(bp_db_t *tree,
 	bp_value_t* values_iter = (bp_value_t *) *values;
 	uint64_t left = count;
 
-	_pthread_rwlock_wrlock(&tree->rwlock);
+	_pthread_rwlock_wrlock(tree->rwlock);
 
 	ret = bp__page_bulk_insert(tree,
 								 tree->head.page,
@@ -184,7 +212,7 @@ int bp_bulk_update(bp_db_t *tree,
 		ret =  bp__tree_write_head((bp__writer_t *) tree, NULL);
 	}
 
-	_pthread_rwlock_unlock(&tree->rwlock);
+	_pthread_rwlock_unlock_wr(tree->rwlock);
 
 	return ret;
 }
@@ -212,14 +240,14 @@ int bp_removev(bp_db_t *tree,
 {
 	int ret;
 
-	_pthread_rwlock_wrlock(&tree->rwlock);
+	_pthread_rwlock_wrlock(tree->rwlock);
 
 	ret = bp__page_remove(tree, tree->head.page, key, remove_cb, arg);
 	if (ret == BP_OK) {
 		ret = bp__tree_write_head((bp__writer_t *) tree, NULL);
 	}
 
-	_pthread_rwlock_unlock(&tree->rwlock);
+	_pthread_rwlock_unlock_wr(tree->rwlock);
 
 	return ret;
 }
@@ -247,12 +275,12 @@ int bp_compact(bp_db_t *tree)
 	/* destroy stub head page */
 	bp__page_destroy(&compacted, compacted.head.page);
 
-	_pthread_rwlock_rdlock(&tree->rwlock);
+	_pthread_rwlock_rdlock(tree->rwlock);
 
 	/* clone source tree's head page */
 	ret = bp__page_clone(&compacted, tree->head.page, &compacted.head.page);
 
-	_pthread_rwlock_unlock(&tree->rwlock);
+	_pthread_rwlock_unlock_rd(tree->rwlock);
 
 	/* copy all pages starting from head */
 	ret = bp__page_copy(tree, &compacted, compacted.head.page);
@@ -261,11 +289,11 @@ int bp_compact(bp_db_t *tree)
 	ret = bp__tree_write_head((bp__writer_t *) &compacted, NULL);
 	if (ret != BP_OK) return ret;
 
-	_pthread_rwlock_wrlock(&tree->rwlock);
+	_pthread_rwlock_wrlock(tree->rwlock);
 
 	ret = bp__writer_compact_finalize((bp__writer_t *) tree,
 										(bp__writer_t *) &compacted);
-	_pthread_rwlock_unlock(&tree->rwlock);
+	_pthread_rwlock_unlock_wr(tree->rwlock);
 
 	return ret;
 }
@@ -279,7 +307,7 @@ int bp_get_filtered_range(bp_db_t *tree,
 {
 	int ret;
 
-	_pthread_rwlock_rdlock(&tree->rwlock);
+	_pthread_rwlock_rdlock(tree->rwlock);
 
 	ret = bp__page_get_range(tree,
 							 tree->head.page,
@@ -289,7 +317,7 @@ int bp_get_filtered_range(bp_db_t *tree,
 							 cb,
 							 arg);
 
-	_pthread_rwlock_unlock(&tree->rwlock);
+	_pthread_rwlock_unlock_rd(tree->rwlock);
 
 	return ret;
 }
@@ -456,9 +484,9 @@ int bp_fsync(bp_db_t *tree)
 {
 	int ret;
 
-	_pthread_rwlock_wrlock(&tree->rwlock);
+	_pthread_rwlock_wrlock(tree->rwlock);
 	ret = bp__writer_fsync((bp__writer_t *) tree);
-	_pthread_rwlock_unlock(&tree->rwlock);
+	_pthread_rwlock_unlock_wr(tree->rwlock);
 
 	return ret;
 }
